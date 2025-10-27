@@ -1,18 +1,22 @@
 {
     "version": "3.0",
-    "defaultProvider": "cdnjs",
+    "defaultProvider": "jsdelivr",
     "libraries": [
         {
             "library": "jquery@3.7.1",
-            "destination": "wwwroot/lib/jquery/dist/"
-        },
-        {
-            "library": "bootstrap@5.3.8",
-            "destination": "wwwroot/lib/bootstrap/dist/"
+            "destination": "wwwroot/lib/jquery/"
         },
         {
             "library": "jquery-validation-unobtrusive@4.0.0",
             "destination": "wwwroot/lib/jquery-validation-unobtrusive/"
+        },
+        {
+            "library": "@popperjs/core@2.11.8",
+            "destination": "wwwroot/lib/popperjs/"
+        },
+        {
+            "library": "@coreui/coreui@5.4.3",
+            "destination": "wwwroot/lib/coreui/"
         }
     ]
 }
