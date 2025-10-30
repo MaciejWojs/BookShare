@@ -1,13 +1,27 @@
-﻿namespace BookShare.Models {
-    public class User {
-        public string Id { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public UserRole Role { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public decimal Balance { get; set; }
-        public List<Order> Orders { get; set; } = new List<Order>();
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
+namespace BookShare.Models {
+    public class User : IdentityUser {
+        // NOWE: kolumna Username w DB była NOT NULL — dodajemy właściwość i walidację.
+        [Required(ErrorMessage = "Nazwa użytkownika jest wymagana.")]
+        [Column("Username")]
+        [StringLength(256, ErrorMessage = "Nazwa użytkownika nie może być dłuższa niż 256 znaków.")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Rola użytkownika jest wymagana.")]
+        public UserRole Role { get; set; } = UserRole.Customer;
+
+        [DataType(DataType.DateTime)]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Range(0, 1_000_000, ErrorMessage = "Saldo musi być większe lub równe 0.")]
+        public decimal Balance { get; set; } = 0m;
+
+        // Relacja 1:N z Order
+        public List<Order> Orders { get; set; } = new();
     }
+
 }

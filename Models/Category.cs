@@ -1,9 +1,23 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
 namespace BookShare.Models {
     public class Category {
+        [Key]
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public List<Book> Books { get; set; } = new List<Book>();
+
+        [Required(ErrorMessage = "Nazwa kategorii jest wymagana.")]
+        [StringLength(100, ErrorMessage = "Nazwa kategorii nie może być dłuższa niż 100 znaków.")]
+        public string Name { get; set; } = string.Empty;
+
+        [StringLength(500, ErrorMessage = "Opis kategorii nie może być dłuższy niż 500 znaków.")]
+        public string? Description { get; set; }
+
+        [DataType(DataType.DateTime)]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Relacja 1:N z Book
+        public List<Book> Books { get; set; } = new();
     }
 }
