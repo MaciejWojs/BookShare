@@ -121,23 +121,25 @@ td {
 /* Pagination styles */
 .pagination {
     display: flex;
-    flex-direction: row;
     align-items: center;
+    justify-content: center;
     gap: 5px;
 }
 
 #paginationNumbers {
-    display: flex;
+    display: flex !important;
     flex-direction: row;
+    align-items: center;
     gap: 5px;
-    margin: 0;
+    margin: 0 10px;
 }
 
-.pagination .page-item {
+#paginationNumbers .page-item {
     display: inline-flex;
+    margin: 0 2px;
 }
 
-.pagination .page-link {
+.page-link {
     min-width: 36px;
     text-align: center;
     padding: 6px 12px;

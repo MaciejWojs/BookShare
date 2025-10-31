@@ -200,50 +200,40 @@
                 row.style.display = (index >= startIndex && index < endIndex) ? '' : 'none';
             });
 
-            // Generate pagination numbers with ellipsis
+            // Generate pagination numbers
             const paginationNumbers = document.getElementById('paginationNumbers');
             paginationNumbers.innerHTML = '';
-            
-            function addPageNumber(pageNum, isActive = false) {
-                const li = document.createElement('li');
-                li.className = `page-item ${isActive ? 'active' : ''}`;
-                li.innerHTML = `<button class="page-link pagination-number">${pageNum}</button>`;
-                li.addEventListener('click', () => goToPage(pageNum));
-                return li;
-            }
 
-            function addEllipsis() {
-                const li = document.createElement('li');
-                li.className = 'page-item disabled';
-                li.innerHTML = '<span class="page-link">...</span>';
-                return li;
-            }
-
-            if (totalPages <= 5) {
-                // Show all pages if 5 or fewer
-                for (let i = 1; i <= totalPages; i++) {
-                    paginationNumbers.appendChild(addPageNumber(i, i === currentPage));
-                }
+            if (totalPages <= 1) {
+                paginationNumbers.innerHTML = `
+                    <li class="page-item active"><button class="page-link">1</button></li>
+                    <li class="page-item disabled"><button class="page-link">-</button></li>
+                    <li class="page-item disabled"><button class="page-link">-</button></li>
+                `;
+            } else if (currentPage === totalPages) {
+                paginationNumbers.innerHTML = `
+                    <li class="page-item"><button class="page-link">${currentPage - 2}</button></li>
+                    <li class="page-item"><button class="page-link">${currentPage - 1}</button></li>
+                    <li class="page-item active"><button class="page-link">${currentPage}</button></li>
+                `;
+            } else if (currentPage === 1) {
+                paginationNumbers.innerHTML = `
+                    <li class="page-item active"><button class="page-link">1</button></li>
+                    <li class="page-item"><button class="page-link">2</button></li>
+                    <li class="page-item"><button class="page-link">3</button></li>
+                `;
             } else {
-                // Always show first page
-                paginationNumbers.appendChild(addPageNumber(1, currentPage === 1));
-
-                if (currentPage > 3) {
-                    paginationNumbers.appendChild(addEllipsis());
-                }
-
-                // Show pages around current page
-                for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
-                    paginationNumbers.appendChild(addPageNumber(i, i === currentPage));
-                }
-
-                if (currentPage < totalPages - 2) {
-                    paginationNumbers.appendChild(addEllipsis());
-                }
-
-                // Always show last page
-                paginationNumbers.appendChild(addPageNumber(totalPages, currentPage === totalPages));
+                paginationNumbers.innerHTML = `
+                    <li class="page-item"><button class="page-link">${currentPage - 1}</button></li>
+                    <li class="page-item active"><button class="page-link">${currentPage}</button></li>
+                    <li class="page-item"><button class="page-link">${currentPage + 1}</button></li>
+                `;
             }
+
+            // Add click events to new numbers
+            paginationNumbers.querySelectorAll('button:not(.disabled)').forEach(button => {
+                button.addEventListener('click', () => goToPage(parseInt(button.textContent)));
+            });
 
             // Update button states
             document.getElementById('prevPage').parentElement.classList.toggle('disabled', currentPage === 1);
