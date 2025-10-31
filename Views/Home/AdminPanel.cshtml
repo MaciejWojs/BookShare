@@ -1,0 +1,289 @@
+@* @page *@
+@* @model BookShare.Views.Home.AdminPanel *@
+@{
+    ViewData["Title"] = "Book Management";
+}
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="container-lg">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <strong>Add New Book</strong>
+                </div>
+                <div class="card-body">
+                    <form enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="title">Title</label>
+                                <input class="form-control" id="title" type="text" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="author">Author</label>
+                                <input class="form-control" id="author" type="text" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="description">Description</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="isbn">ISBN</label>
+                                <input class="form-control" id="isbn" type="text">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="quantity">Quantity</label>
+                                <input class="form-control" id="quantity" type="number" min="0">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="coverImage">Book Cover</label>
+                                <input class="form-control" type="file" id="coverImage" accept="image/*">
+                                <div class="form-text">Accepted formats: JPG, PNG (max 5MB)</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="pdfFile">PDF File</label>
+                                <input class="form-control" type="file" id="pdfFile" accept="application/pdf">
+                                <div class="form-text">Upload PDF version of the book (max 50MB)</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div id="imagePreview" class="mt-2" style="max-width: 200px; display: none;">
+                                <img id="coverPreview" class="img-fluid rounded" src="" alt="Cover preview">
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" type="submit">Add Book</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Book List</strong>
+                    <div class="w-50">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search books...">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="booksTable">
+                            <thead>
+                                <tr>
+                                    <th class="px-3">Title</th>
+                                    <th class="px-3">Author</th>
+                                    <th class="px-3">ISBN</th>
+                                    <th class="px-3">Quantity</th>
+                                    <th class="px-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookTableBody">
+                                <!-- Table content will be generated dynamically -->
+                            </tbody>
+                        </table>
+                        <div class="pagination-wrapper">
+                            <div class="d-flex justify-content-between align-items-center px-3">
+                                <div class="text-muted">
+                                    Showing <span id="startIndex">1</span>-<span id="endIndex">10</span> of <span id="totalItems">0</span> items
+                                </div>
+                                <nav aria-label="Book list pagination">
+                                    <ul class="pagination mb-0">
+                                        <li class="page-item">
+                                            <button class="page-link" id="firstPage" aria-label="First">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </button>
+                                        </li>
+                                        <li class="page-item">
+                                            <button class="page-link" id="prevPage" aria-label="Previous">
+                                                <span aria-hidden="true">‹</span>
+                                            </button>
+                                        </li>
+                                        <li class="page-item d-none d-sm-block" id="paginationNumbers">
+                                            <!-- Pagination numbers will be inserted here -->
+                                        </li>
+                                        <li class="page-item">
+                                            <button class="page-link" id="nextPage" aria-label="Next">
+                                                <span aria-hidden="true">›</span>
+                                            </button>
+                                        </li>
+                                        <li class="page-item">
+                                            <button class="page-link" id="lastPage" aria-label="Last">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="my-5"></div>
+@section Scripts {
+    <script>
+        document.getElementById('coverImage').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById('coverPreview');
+                    preview.src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Generate sample data
+        function generateSampleBooks(count) {
+            const titles = ['The Great Gatsby', '1984', 'To Kill a Mockingbird', 'Pride and Prejudice', 
+                          'The Catcher in the Rye', 'The Hobbit', 'Brave New World', 'Animal Farm'];
+            const authors = ['F. Scott Fitzgerald', 'George Orwell', 'Harper Lee', 'Jane Austen', 
+                           'J.D. Salinger', 'J.R.R. Tolkien', 'Aldous Huxley'];
+            const tbody = document.getElementById('bookTableBody');
+            tbody.innerHTML = '';
+
+            for (let i = 1; i <= count; i++) {
+                const title = titles[Math.floor(Math.random() * titles.length)];
+                const author = authors[Math.floor(Math.random() * authors.length)];
+                const isbn = `978-${Math.floor(Math.random() * 10)}-${Math.floor(Math.random() * 100000)}-${Math.floor(Math.random() * 100000)}-${Math.floor(Math.random() * 10)}`;
+                const quantity = Math.floor(Math.random() * 10) + 1;
+
+                const row = `
+                    <tr>
+                        <td class="px-3">${title} #${i}</td>
+                        <td class="px-3">${author}</td>
+                        <td class="px-3">${isbn}</td>
+                        <td class="px-3">${quantity}</td>
+                        <td class="px-3">
+                            <button class="btn btn-sm btn-outline-primary me-1">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger">Delete</button>
+                        </td>
+                    </tr>`;
+                tbody.innerHTML += row;
+            }
+        }
+
+        // Generate 100 sample books on page load
+        generateSampleBooks(100);
+
+        const itemsPerPage = 10;
+        let currentPage = 1;
+        
+        function updatePagination() {
+            const rows = document.querySelectorAll('#booksTable tbody tr');
+            const totalItems = rows.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+
+            // Update display text
+            document.getElementById('startIndex').textContent = startIndex + 1;
+            document.getElementById('endIndex').textContent = endIndex;
+            document.getElementById('totalItems').textContent = totalItems;
+
+            // Show/hide rows
+            rows.forEach((row, index) => {
+                row.style.display = (index >= startIndex && index < endIndex) ? '' : 'none';
+            });
+
+            // Generate pagination numbers with ellipsis
+            const paginationNumbers = document.getElementById('paginationNumbers');
+            paginationNumbers.innerHTML = '';
+            
+            function addPageNumber(pageNum, isActive = false) {
+                const li = document.createElement('li');
+                li.className = `page-item ${isActive ? 'active' : ''}`;
+                li.innerHTML = `<button class="page-link pagination-number">${pageNum}</button>`;
+                li.addEventListener('click', () => goToPage(pageNum));
+                return li;
+            }
+
+            function addEllipsis() {
+                const li = document.createElement('li');
+                li.className = 'page-item disabled';
+                li.innerHTML = '<span class="page-link">...</span>';
+                return li;
+            }
+
+            if (totalPages <= 5) {
+                // Show all pages if 5 or fewer
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationNumbers.appendChild(addPageNumber(i, i === currentPage));
+                }
+            } else {
+                // Always show first page
+                paginationNumbers.appendChild(addPageNumber(1, currentPage === 1));
+
+                if (currentPage > 3) {
+                    paginationNumbers.appendChild(addEllipsis());
+                }
+
+                // Show pages around current page
+                for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                    paginationNumbers.appendChild(addPageNumber(i, i === currentPage));
+                }
+
+                if (currentPage < totalPages - 2) {
+                    paginationNumbers.appendChild(addEllipsis());
+                }
+
+                // Always show last page
+                paginationNumbers.appendChild(addPageNumber(totalPages, currentPage === totalPages));
+            }
+
+            // Update button states
+            document.getElementById('prevPage').parentElement.classList.toggle('disabled', currentPage === 1);
+            document.getElementById('nextPage').parentElement.classList.toggle('disabled', currentPage === totalPages);
+            document.getElementById('firstPage').parentElement.classList.toggle('disabled', currentPage === 1);
+            document.getElementById('lastPage').parentElement.classList.toggle('disabled', currentPage === totalPages);
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            updatePagination();
+        }
+
+        // Event listeners for pagination controls
+        document.getElementById('firstPage').addEventListener('click', () => goToPage(1));
+        document.getElementById('lastPage').addEventListener('click', () => {
+            const totalPages = Math.ceil(document.querySelectorAll('#booksTable tbody tr').length / itemsPerPage);
+            goToPage(totalPages);
+        });
+        document.getElementById('prevPage').addEventListener('click', () => currentPage > 1 && goToPage(currentPage - 1));
+        document.getElementById('nextPage').addEventListener('click', () => {
+            const totalPages = Math.ceil(document.querySelectorAll('#booksTable tbody tr').length / itemsPerPage);
+            currentPage < totalPages && goToPage(currentPage + 1);
+        });
+
+        // Modify search function to reset pagination
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchText = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#booksTable tbody tr');
+            
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchText) ? '' : 'none';
+            });
+
+            currentPage = 1;
+            updatePagination();
+        });
+
+        // Initialize pagination
+        updatePagination();
+    </script>
+}

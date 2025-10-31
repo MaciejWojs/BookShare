@@ -32,5 +32,14 @@ namespace BookShare.Controllers {
         public IActionResult Error() {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+
+        
+        [Authorize(Roles = "Administrator")] 
+        public IActionResult AdminPanel() {
+            // var viewModel = new AdminPanelViewModel();
+            // return View(viewModel);
+            return View();
+        }
     }
 }
