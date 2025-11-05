@@ -15,7 +15,7 @@ namespace BookShare.Models {
         public string? Description { get; set; }
 
         [DataType(DataType.DateTime)]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         // Relacja 1:N z Book
         public List<Book> Books { get; set; } = new();

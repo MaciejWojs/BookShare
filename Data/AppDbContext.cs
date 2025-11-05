@@ -14,6 +14,8 @@ namespace BookShare.Data {
         // ...nowe: DbSet dla Order
         public DbSet<Order> Orders { get; set; }
 
+        public DbSet<Book> Books { get; set; }
+
         // protected override void OnModelCreating(ModelBuilder builder) {
         //     base.OnModelCreating(builder);
         //     // ...dodatkowa konfiguracja modelu jeśli potrzeba...

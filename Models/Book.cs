@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace BookShare.Models {
     public class Book {
@@ -29,11 +30,10 @@ namespace BookShare.Models {
         [Range(0, int.MaxValue, ErrorMessage = "Stan magazynowy nie może być ujemny.")]
         public int StockQuantity { get; set; }
 
-        [Required(ErrorMessage = "Kategoria jest wymagana.")]
-        public int CategoryId { get; set; }
+        public int? CategoryId { get; set; }
 
         [DataType(DataType.DateTime)]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         // Relacja 1:N z OrderItem
         public List<OrderItem> OrderItems { get; set; } = new();
