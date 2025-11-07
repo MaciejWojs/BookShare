@@ -7,38 +7,32 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BookShare.Data;
 using BookShare.Models;
+using Microsoft.AspNetCore.Authorization;
 
-namespace BookShare.Controllers
-{
-    public class BooksController : Controller
-    {
+namespace BookShare.Controllers {
+    public class BooksController : Controller {
         private readonly AppDbContext _context;
 
-        public BooksController(AppDbContext context)
-        {
+        public BooksController(AppDbContext context) {
             _context = context;
         }
 
         // GET: Books
-        public async Task<IActionResult> Index()
-        {
+        public async Task<IActionResult> Index() {
             var appDbContext = _context.Books.Include(b => b.Category);
             return View(await appDbContext.ToListAsync());
         }
 
         // GET: Books/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
+        public async Task<IActionResult> Details(int? id) {
+            if (id == null) {
                 return NotFound();
             }
 
             var book = await _context.Books
                 .Include(b => b.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (book == null)
-            {
+            if (book == null) {
                 return NotFound();
             }
 
@@ -46,8 +40,8 @@ namespace BookShare.Controllers
         }
 
         // GET: Books/Create
-        public IActionResult Create()
-        {
+        [Authorize(Roles = "Administrator")] 
+        public IActionResult Create() {
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
             return View();
         }
@@ -57,10 +51,9 @@ namespace BookShare.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt")] Book book)
-        {
-            if (ModelState.IsValid)
-            {
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Create([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt")] Book book) {
+            if (ModelState.IsValid) {
                 _context.Add(book);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -70,16 +63,14 @@ namespace BookShare.Controllers
         }
 
         // GET: Books/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
+        [Authorize(Roles = "Administrator")] 
+        public async Task<IActionResult> Edit(int? id) {
+            if (id == null) {
                 return NotFound();
             }
 
             var book = await _context.Books.FindAsync(id);
-            if (book == null)
-            {
+            if (book == null) {
                 return NotFound();
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", book.CategoryId);
@@ -91,28 +82,22 @@ namespace BookShare.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt")] Book book)
-        {
-            if (id != book.Id)
-            {
+        [Authorize(Roles = "Administrator")] // dokładnie ta nazwa
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt")] Book book) {
+            if (id != book.Id) {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
+            if (ModelState.IsValid) {
+                try {
                     _context.Update(book);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BookExists(book.Id))
-                    {
+                catch (DbUpdateConcurrencyException) {
+                    if (!BookExists(book.Id)) {
                         return NotFound();
                     }
-                    else
-                    {
+                    else {
                         throw;
                     }
                 }
@@ -123,18 +108,16 @@ namespace BookShare.Controllers
         }
 
         // GET: Books/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Delete(int? id) {
+            if (id == null) {
                 return NotFound();
             }
 
             var book = await _context.Books
                 .Include(b => b.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (book == null)
-            {
+            if (book == null) {
                 return NotFound();
             }
 
@@ -144,11 +127,10 @@ namespace BookShare.Controllers
         // POST: Books/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
+        [Authorize(Roles = "Administrator")] 
+        public async Task<IActionResult> DeleteConfirmed(int id) {
             var book = await _context.Books.FindAsync(id);
-            if (book != null)
-            {
+            if (book != null) {
                 _context.Books.Remove(book);
             }
 
@@ -156,8 +138,7 @@ namespace BookShare.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool BookExists(int id)
-        {
+        private bool BookExists(int id) {
             return _context.Books.Any(e => e.Id == id);
         }
     }

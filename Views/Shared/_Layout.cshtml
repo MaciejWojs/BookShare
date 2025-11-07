@@ -1,5 +1,16 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject UserManager<BookShare.Models.User> UserManager
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+    
+@* @{
+    var currentUser = await UserManager.GetUserAsync(User);
+} *@
+<!DOCTYPE html>
 <html lang="en">
+
 
 <head>
     <meta charset="utf-8" />
@@ -32,10 +43,14 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home"
                                 asp-action="Privacy">Privacy</a>
                         </li>
+                        @if((@currentUser?.Role.ToString() == "Administrator"))
+                        {
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home"
                                 asp-action="AdminPanel">AdminPanel</a>
                         </li>
+                        }
                     </ul>
 
 
