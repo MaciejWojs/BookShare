@@ -41,7 +41,7 @@ namespace BookShare.Controllers {
         }
 
         // GET: Books/Create
-        [Authorize(Roles = "Administrator")] 
+        [Authorize(Roles = "Administrator")]
         public IActionResult Create() {
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
             return View();
@@ -64,7 +64,7 @@ namespace BookShare.Controllers {
         }
 
         // GET: Books/Edit/5
-        [Authorize(Roles = "Administrator")] 
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Edit(int? id) {
             if (id == null) {
                 return NotFound();
@@ -157,7 +157,7 @@ namespace BookShare.Controllers {
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Manage([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId")] Book book) {
             Console.WriteLine("Dodawanie książki: " + book.Title);
-             book.CreatedAt = DateTime.UtcNow; // Set creation date automatically
+            book.CreatedAt = DateTime.UtcNow; // Set creation date automatically
 
             if (ModelState.IsValid) {
                 Console.WriteLine("Model jest poprawny.");
@@ -177,7 +177,7 @@ namespace BookShare.Controllers {
             return View(model);
         }
 
-        
+
 
         private bool BookExists(int id) {
             return _context.Books.Any(e => e.Id == id);

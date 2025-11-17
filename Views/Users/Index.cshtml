@@ -1,0 +1,167 @@
+@model IEnumerable<BookShare.Models.User>
+@using Microsoft.AspNetCore.Identity
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+@* <table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Username)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Role)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Balance)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Role)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Balance)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+
+</table> *@
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>User List</strong>
+                <div class="w-50">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search users...">
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th class="px-3">Username</th>
+                                <th class="px-3">Role</th>
+                                <th class="px-3">Email</th>
+                                <th class="px-3">Balance</th>
+                                <th class="px-3">Created at</th>
+                                <th class="px-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="px-3">@Html.DisplayFor(modelItem => item.UserName)</td>
+                                    <td class="px-3">@Html.DisplayFor(modelItem => item.Role)</td>
+                                    <td class="px-3">@Html.DisplayFor(modelItem => item.Email)</td>
+                                    <td class="px-3">@Html.DisplayFor(modelItem => item.Balance)</td>
+                                    <td class="px-3">@Html.DisplayFor(modelItem => item.CreatedAt)</td>
+                                    <td class="px-3">
+                                        <a asp-action="Edit" asp-route-id="@item.Id"
+                                            class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                            class="btn btn-sm btn-outline-secondary me-1">Details</a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id"
+                                            class="btn btn-sm btn-outline-danger">Delete</a>
+                                        @{
+                                            var currentName = User.Identity?.Name ?? "";
+                                            var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+                                        }
+
+                                        @if (isAuthenticated)
+                                        {
+                                            var isAdmin = string.Equals(item.Role.ToString(), "Administrator",
+                                            StringComparison.OrdinalIgnoreCase);
+                                            @* Sprawdź, czy to wiersz aktualnie zalogowanego użytownika *@
+                                            var isSelf = string.Equals(item.UserName, currentName,
+                                            StringComparison.OrdinalIgnoreCase);
+                                            var actionName = (isAdmin) ? "Demote" : "Promote";
+
+                                            if (!isSelf)
+                                            {
+                                                <form asp-action="@actionName" asp-route-id="@item.Id" method="post"
+                                                    class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-success ms-1"
+                                                        onclick="this.disabled=true;this.form.submit();">@actionName</button>
+                                                </form>
+                                            }
+                                        }
+
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="pagination-wrapper">
+                        <div class="d-flex justify-content-between align-items-center px-3">
+                            <div class="text-muted">
+                                Showing <span id="startIndex">1</span>-<span id="endIndex">10</span> of <span
+                                    id="totalItems">0</span> items
+                            </div>
+                            <nav aria-label="Users list pagination">
+                                <ul class="pagination mb-0">
+                                    <li class="page-item">
+                                        <button class="page-link" id="firstPage" aria-label="First">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </button>
+                                    </li>
+                                    <li class="page-item">
+                                        <button class="page-link" id="prevPage" aria-label="Previous">
+                                            <span aria-hidden="true">‹</span>
+                                        </button>
+                                    </li>
+                                    <li class="page-item d-none d-sm-block" id="paginationNumbers">
+                                        <!-- Pagination numbers will be inserted here -->
+                                    </li>
+                                    <li class="page-item">
+                                        <button class="page-link" id="nextPage" aria-label="Next">
+                                            <span aria-hidden="true">›</span>
+                                        </button>
+                                    </li>
+                                    <li class="page-item">
+                                        <button class="page-link" id="lastPage" aria-label="Last">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

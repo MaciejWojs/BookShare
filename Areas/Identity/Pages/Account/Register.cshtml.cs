@@ -121,16 +121,13 @@ namespace BookShare.Areas.Identity.Pages.Account {
                     _logger.LogInformation("User created a new account with password.");
 
                     // przypisz nowo utworzonemu użytkownikowi rolę Identity "Customer" (domyślna)
-                    try
-                    {
+                    try {
                         var addRoleResult = await _userManager.AddToRoleAsync(user, "Customer");
-                        if (!addRoleResult.Succeeded)
-                        {
+                        if (!addRoleResult.Succeeded) {
                             _logger.LogWarning("Failed to add new user to 'Customer' role: {Errors}", string.Join(", ", addRoleResult.Errors.Select(e => e.Description)));
                         }
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception ex) {
                         _logger.LogError(ex, "Error while assigning default role to new user.");
                     }
 

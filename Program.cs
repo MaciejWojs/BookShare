@@ -3,7 +3,8 @@ using BookShare.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using dotenv.net;
-using System.Linq; // <-- dodane
+using System.Linq;
+using Npgsql.Replication; // <-- dodane
 
 DotEnv.Load();
 
@@ -39,7 +40,7 @@ var app = builder.Build();
 await using var scope = app.Services.CreateAsyncScope();
 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-Console.WriteLine("czy DEV dziala?"+ app.Environment.IsDevelopment());
+Console.WriteLine("czy DEV dziala?" + app.Environment.IsDevelopment());
 
 try {
     if (!await db.Database.CanConnectAsync()) {
@@ -59,7 +60,7 @@ try {
             app.Logger.LogInformation("Created role: {Role}", r);
         }
     }
-    
+
     if (app.Environment.IsDevelopment()) {
         // Utwórz pierwszego użytkownika (admin) jeśli brak użytkowników
         if (!await userManager.Users.AnyAsync()) {
@@ -79,6 +80,11 @@ try {
             else {
                 app.Logger.LogWarning("Failed to create initial admin user: {Errors}", string.Join(", ", createRes.Errors.Select(e => e.Description)));
             }
+            var testUser = new User {
+                UserName = "test",
+                Email = "test@example.com"
+            };
+            await userManager.CreateAsync(testUser, "Test123!");
         }
     }
 

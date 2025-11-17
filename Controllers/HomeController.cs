@@ -34,8 +34,8 @@ namespace BookShare.Controllers {
         }
 
 
-        
-        [Authorize(Roles = "Administrator")] 
+
+        [Authorize(Roles = "Administrator")]
         public IActionResult AdminPanel() {
             // var viewModel = new AdminPanelViewModel();
             // return View(viewModel);
