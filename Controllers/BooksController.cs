@@ -102,7 +102,7 @@ namespace BookShare.Controllers {
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Manage", "Books");
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", NewBook.CategoryId);
             return View(NewBook);
@@ -136,7 +136,7 @@ namespace BookShare.Controllers {
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Manage", "Books");
         }
 
         //GET : Books/Manage

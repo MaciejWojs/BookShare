@@ -148,3 +148,43 @@ td {
 .page-item.disabled .page-link {
     pointer-events: none;
 }
+
+/* Custom margin classes for larger spacing */
+.mt-6 {
+    margin-top: 4rem !important; /* 64px */
+}
+
+.mt-7 {
+    margin-top: 5rem !important; /* 80px */
+}
+
+.mt-8 {
+    margin-top: 6rem !important; /* 96px */
+}
+
+.mb-6 {
+    margin-bottom: 4rem !important; /* 64px */
+}
+
+.mb-7 {
+    margin-bottom: 5rem !important; /* 80px */
+}
+
+.mb-8 {
+    margin-bottom: 6rem !important; /* 96px */
+}
+
+.my-6 {
+    margin-top: 4rem !important;
+    margin-bottom: 4rem !important;
+}
+
+.my-7 {
+    margin-top: 5rem !important;
+    margin-bottom: 5rem !important;
+}
+
+.my-8 {
+    margin-top: 6rem !important;
+    margin-bottom: 6rem !important;
+}

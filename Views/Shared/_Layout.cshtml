@@ -5,7 +5,7 @@
     var currentUser = await UserManager.GetUserAsync(User);
     if (currentUser != null)
     {
-        Console.WriteLine("=== USER INFORMATION ===");
+        @* Console.WriteLine("=== USER INFORMATION ===");
         Console.WriteLine($"Username (custom): {currentUser.Username}");
         Console.WriteLine($"Role (custom): {currentUser.Role}");
         Console.WriteLine($"Balance (custom): {currentUser.Balance:C}");
@@ -24,8 +24,8 @@
         Console.WriteLine($"ConcurrencyStamp (Identity): {currentUser.ConcurrencyStamp}");
         Console.WriteLine($"NormalizedUserName (Identity): {currentUser.NormalizedUserName}");
         Console.WriteLine($"NormalizedEmail (Identity): {currentUser.NormalizedEmail}");
-        Console.WriteLine("========================");
-    }
+        Console.WriteLine("========================"); *@
+    } 
     else
     {
         Console.WriteLine("No authenticated user found");
@@ -130,7 +130,7 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="border-top footer text-muted mt-8">
         <div class="container">
             &copy; 2025 - BookShare - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>

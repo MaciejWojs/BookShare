@@ -3,24 +3,31 @@ using BookShare.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using BookShare.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookShare.Controllers {
     public class HomeController : Controller {
         private readonly ILogger<HomeController> _logger;
-        private readonly UserManager<User> _userManager; // 👈 dodajemy UserManager
+        private readonly UserManager<User> _userManager;
+        private readonly AppDbContext _context;
 
-
-        public HomeController(ILogger<HomeController> logger, UserManager<User> userManager) {
+        public HomeController(ILogger<HomeController> logger, UserManager<User> userManager, AppDbContext context) {
             _logger = logger;
             _userManager = userManager;
+            _context = context;
         }
 
         public async Task<IActionResult> IndexAsync() {
-            // var user = await _userManager.GetUserAsync(User);
-            // var roles = await _userManager.GetRolesAsync(user);
+            // Fetch books with their categories from database
+            var books = await _context.Books
+                .Include(b => b.Category)
+                .Where(b => b.StockQuantity > 0) // Only show books in stock
+                .OrderByDescending(b => b.CreatedAt)
+                .Take(20) // Limit to 20 most recent books
+                .ToListAsync();
 
-            // Console.WriteLine("ROLES :" + string.Join(", ", roles));
-            return View();
+            return View(books);
         }
 
         [Authorize(Roles = "Administrator")] // dokładnie ta nazwa
