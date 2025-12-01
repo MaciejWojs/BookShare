@@ -3,6 +3,33 @@
 @inject UserManager<BookShare.Models.User> UserManager
 @{
     var currentUser = await UserManager.GetUserAsync(User);
+    if (currentUser != null)
+    {
+        Console.WriteLine("=== USER INFORMATION ===");
+        Console.WriteLine($"Username (custom): {currentUser.Username}");
+        Console.WriteLine($"Role (custom): {currentUser.Role}");
+        Console.WriteLine($"Balance (custom): {currentUser.Balance:C}");
+        Console.WriteLine($"CreatedAt (custom): {currentUser.CreatedAt}");
+        Console.WriteLine($"Id (Identity): {currentUser.Id}");
+        Console.WriteLine($"UserName (Identity): {currentUser.UserName}");
+        Console.WriteLine($"Email (Identity): {currentUser.Email}");
+        Console.WriteLine($"EmailConfirmed (Identity): {currentUser.EmailConfirmed}");
+        Console.WriteLine($"PhoneNumber (Identity): {currentUser.PhoneNumber}");
+        Console.WriteLine($"PhoneNumberConfirmed (Identity): {currentUser.PhoneNumberConfirmed}");
+        Console.WriteLine($"TwoFactorEnabled (Identity): {currentUser.TwoFactorEnabled}");
+        Console.WriteLine($"LockoutEnd (Identity): {currentUser.LockoutEnd}");
+        Console.WriteLine($"LockoutEnabled (Identity): {currentUser.LockoutEnabled}");
+        Console.WriteLine($"AccessFailedCount (Identity): {currentUser.AccessFailedCount}");
+        Console.WriteLine($"SecurityStamp (Identity): {currentUser.SecurityStamp}");
+        Console.WriteLine($"ConcurrencyStamp (Identity): {currentUser.ConcurrencyStamp}");
+        Console.WriteLine($"NormalizedUserName (Identity): {currentUser.NormalizedUserName}");
+        Console.WriteLine($"NormalizedEmail (Identity): {currentUser.NormalizedEmail}");
+        Console.WriteLine("========================");
+    }
+    else
+    {
+        Console.WriteLine("No authenticated user found");
+    }
 }
 
 <!DOCTYPE html>
@@ -43,6 +70,7 @@
                         </li>
                         @if ((@currentUser?.Role.ToString() == "Administrator"))
                         {
+                            
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-coreui-toggle="dropdown"
                                     aria-expanded="false">
@@ -114,4 +142,18 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 
-</html>
+@section Scripts {
+    @* <script>
+    console.log("Checking current user role in layout:");
+    
+    @if (currentUser != null)
+    {
+        <text>console.log("Current user role: @currentUser.Role.ToString()");</text>
+    }
+    else
+    {
+        <text>console.log("No authenticated user found");</text>
+    }
+</script> *@
+
+}
