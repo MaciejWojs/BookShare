@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BookShare.Data;
 using BookShare.Models;
+using BookShare.Models.ViewModels;
 
 namespace BookShare.Controllers {
     public class CategoriesController : Controller {
@@ -14,6 +15,37 @@ namespace BookShare.Controllers {
 
         public CategoriesController(AppDbContext context) {
             _context = context;
+        }
+
+        // GET: Categories/Manage
+        public async Task<IActionResult> Manage() {
+            var viewModel = new CategoryManagementViewModel {
+                Categories = await _context.Categories
+                    .Include(c => c.Books)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ToListAsync()
+            };
+            return View(viewModel);
+        }
+
+        // POST: Categories/Manage
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Manage(CategoryManagementViewModel viewModel) {
+            if (ModelState.IsValid && viewModel.NewCategory != null) {
+                // Ensure CreatedAt is set
+                viewModel.NewCategory.CreatedAt = DateTimeOffset.UtcNow;
+                _context.Add(viewModel.NewCategory);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Manage));
+            }
+
+            // Reload categories if model is invalid
+            viewModel.Categories = await _context.Categories
+                .Include(c => c.Books)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+            return View(viewModel);
         }
 
         // GET: Categories
@@ -50,7 +82,7 @@ namespace BookShare.Controllers {
             if (ModelState.IsValid) {
                 _context.Add(category);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Manage","Categories");
             }
             return View(category);
         }
@@ -91,7 +123,7 @@ namespace BookShare.Controllers {
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Manage","Categories");
             }
             return View(category);
         }
