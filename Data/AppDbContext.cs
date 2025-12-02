@@ -16,20 +16,43 @@ namespace BookShare.Data {
 
         public DbSet<Book> Books { get; set; }
 
-        // protected override void OnModelCreating(ModelBuilder builder) {
-        //     base.OnModelCreating(builder);
-        //     // ...dodatkowa konfiguracja modelu jeśli potrzeba...
+        public DbSet<UserBook> UserBooks { get; set; }
 
-        //     // Jawne mapowanie relacji Order -> User, żeby EF użył właściwości UserId (string)
-        //     builder.Entity<Order>(entity =>
-        //     {
-        //         entity.HasKey(o => o.Id);
+        protected override void OnModelCreating(ModelBuilder builder) {
+            base.OnModelCreating(builder);
+            // ...dodatkowa konfiguracja modelu jeśli potrzeba...
 
-        //         entity.HasOne(o => o.User)
-        //               .WithMany() // jeśli masz kolekcję Orders w User -> .WithMany(u => u.Orders)
-        //               .HasForeignKey(o => o.UserId)
-        //               .OnDelete(DeleteBehavior.SetNull); // lub Cascade/Restrict zgodnie z domeną
-        //     });
-        // }
+            // Jawne mapowanie relacji Order -> User, żeby EF użył właściwości UserId (string)
+            builder.Entity<Order>(entity =>
+            {
+                entity.HasKey(o => o.Id);
+
+                entity.HasOne(o => o.User)
+                      .WithMany(u => u.Orders)
+                      .HasForeignKey(o => o.UserId)
+                      .OnDelete(DeleteBehavior.SetNull); // lub Cascade/Restrict zgodnie z domeną
+            });
+
+            // Konfiguracja relacji UserBook (Many-to-Many między User a Book)
+            builder.Entity<UserBook>(entity =>
+            {
+                entity.HasKey(ub => ub.Id);
+
+                // Unikalna kombinacja User + Book (jeden użytkownik nie może mieć duplikatu tej samej książki)
+                entity.HasIndex(ub => new { ub.UserId, ub.BookId })
+                      .IsUnique()
+                      .HasDatabaseName("IX_UserBook_UserId_BookId");
+
+                entity.HasOne(ub => ub.User)
+                      .WithMany(u => u.UserBooks)
+                      .HasForeignKey(ub => ub.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ub => ub.Book)
+                      .WithMany(b => b.UserBooks)
+                      .HasForeignKey(ub => ub.BookId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+        }
     }
 }

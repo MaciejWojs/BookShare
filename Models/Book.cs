@@ -40,5 +40,8 @@ namespace BookShare.Models {
 
         // (opcjonalnie) Nawigacja do kategorii
         public Category? Category { get; set; }
+
+        // Relacja M:N z User przez UserBook
+        public List<UserBook> UserBooks { get; set; } = new();
     }
 }

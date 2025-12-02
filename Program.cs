@@ -86,6 +86,24 @@ try {
             };
             await userManager.CreateAsync(testUser, "Test123!");
         }
+        
+        try {
+            await db.Database.ExecuteSqlRawAsync(@"
+                INSERT INTO ""UserBooks"" (""UserId"", ""BookId"", ""AcquiredAt"")
+                SELECT u.""Id"", 18, NOW()
+                FROM ""AspNetUsers"" u 
+                WHERE u.""NormalizedUserName"" = 'USER1'
+                AND NOT EXISTS (
+                    SELECT 1 FROM ""UserBooks"" ub 
+                    WHERE ub.""UserId"" = u.""Id"" AND ub.""BookId"" = 18
+                );
+            ");
+            app.Logger.LogInformation("Sample UserBook relationship created");
+        }
+        catch (Exception ex) {
+            app.Logger.LogWarning("Failed to create sample UserBook relationship: {Error}", ex.Message);
+        }
+        
     }
 
     var users = await userManager.Users.ToListAsync();

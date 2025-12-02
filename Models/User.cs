@@ -22,6 +22,9 @@ namespace BookShare.Models {
 
         // Relacja 1:N z Order
         public List<Order> Orders { get; set; } = new();
+
+        // Relacja M:N z Book przez UserBook
+        public List<UserBook> UserBooks { get; set; } = new();
     }
 
 }
