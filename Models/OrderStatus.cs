@@ -4,6 +4,7 @@ namespace BookShare.Models {
         Confirmed,
         Shipped,
         Delivered,
+        Completed,
         Cancelled
     }
 }

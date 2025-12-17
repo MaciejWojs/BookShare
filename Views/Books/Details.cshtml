@@ -6,6 +6,20 @@
 
 <h1>Details</h1>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
 <div>
     <h4>Book</h4>
     <hr />
@@ -38,13 +52,16 @@
             @Html.DisplayNameFor(model => model.Price)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
+            <span class="fw-bold text-primary">@Html.DisplayFor(model => model.Price) PLN</span>
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.StockQuantity)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.StockQuantity)
+            <span class="@(Model.StockQuantity > 0 ? "text-success" : "text-danger")">
+                @Html.DisplayFor(model => model.StockQuantity)
+                @(Model.StockQuantity > 0 ? "dostępne" : "niedostępne")
+            </span>
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.CreatedAt)
@@ -59,6 +76,28 @@
             @Html.DisplayFor(model => model.Category.Name)
         </dd>
     </dl>
+</div>
+<div class="mb-3">
+    @if (User.Identity.IsAuthenticated && Model.StockQuantity > 0)
+    {
+        <form asp-action="Purchase" asp-route-id="@Model?.Id" method="post" style="display: inline;">
+            <button type="submit" class="btn btn-success btn-lg me-2" onclick="return confirm('Czy na pewno chcesz kupić tę książkę za @Model.Price PLN?')">
+                <i class="fas fa-shopping-cart"></i> Kup teraz za @Model.Price PLN
+            </button>
+        </form>
+    }
+    else if (!User.Identity.IsAuthenticated)
+    {
+        <div class="alert alert-info">
+            <a href="/Identity/Account/Login" class="btn btn-primary">Zaloguj się</a> aby kupić tę książkę.
+        </div>
+    }
+    else if (Model.StockQuantity <= 0)
+    {
+        <div class="alert alert-warning">
+            Książka niedostępna w magazynie.
+        </div>
+    }
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |

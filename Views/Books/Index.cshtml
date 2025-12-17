@@ -4,7 +4,21 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Książki</h1>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -36,7 +50,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Category)
             </th>
-            <th></th>
+            <th>Akcje</th>
         </tr>
     </thead>
     <tbody>
@@ -55,10 +69,12 @@
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Price)
+                <span class="fw-bold text-primary">@Html.DisplayFor(modelItem => item.Price) PLN</span>
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.StockQuantity)
+                <span class="@(item.StockQuantity > 0 ? "text-success" : "text-danger")">
+                    @Html.DisplayFor(modelItem => item.StockQuantity)
+                </span>
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CreatedAt)
@@ -67,9 +83,27 @@
                 @Html.DisplayFor(modelItem => item.Category.Name)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Szczegóły</a>
+                
+                @if (User.Identity.IsAuthenticated && item.StockQuantity > 0)
+                {
+                    <form asp-action="Purchase" asp-route-id="@item.Id" method="post" style="display: inline;" class="mt-1">
+                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Czy na pewno chcesz kupić @item.Title za @item.Price PLN?')">
+                            <i class="fas fa-shopping-cart"></i> Kup
+                        </button>
+                    </form>
+                }
+                else if (item.StockQuantity <= 0)
+                {
+                    <span class="text-muted">Niedostępne</span>
+                }
+                
+                @if (User.IsInRole("Administrator"))
+                {
+                    <br/>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm mt-1">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm mt-1">Delete</a>
+                }
             </td>
         </tr>
 }
