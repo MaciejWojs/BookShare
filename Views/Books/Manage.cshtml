@@ -62,6 +62,17 @@
                                 <span asp-validation-for="@book.Price" class="text-danger"></span>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="pdfFile" class="form-label">Plik PDF książki</label>
+                                <input type="file" name="pdfFile" id="pdfFile" class="form-control" accept=".pdf" />
+                                <small class="form-text text-muted">Wybierz plik PDF do przesłania (opcjonalne)</small>
+                                @if (ViewData.ModelState["pdfFile"]?.Errors.Count > 0)
+                                {
+                                    <span class="text-danger">@ViewData.ModelState["pdfFile"].Errors.FirstOrDefault()?.ErrorMessage</span>
+                                }
+                            </div>
+                        </div>
                         @* <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label" for="coverImage">Book Cover</label>
@@ -107,6 +118,7 @@
                                     <th class="px-3">ISBN</th>
                                     <th class="px-3">Category</th>
                                     <th class="px-3">Quantity</th>
+                                    <th class="px-3">PDF File</th>
                                     <th class="px-3">Actions</th>
                                 </tr>
                             </thead>
@@ -118,6 +130,16 @@
                                         <td class="px-3">@Html.DisplayFor(modelItem => item.ISBN)</td>
                                         <td class="px-3">@Html.DisplayFor(modelItem => item.Category.Name)</td>
                                         <td class="px-3">@Html.DisplayFor(modelItem => item.StockQuantity)</td>
+                                        <td class="px-3">
+                                            @if (!string.IsNullOrEmpty(item.PdfFilePath))
+                                            {
+                                                <span class="badge bg-success">✓ PDF</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Brak</span>
+                                            }
+                                        </td>
                                         <td class="px-3">
                                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1">Edit</a>
                                             <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary me-1">Details</a>

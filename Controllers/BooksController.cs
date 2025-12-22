@@ -10,13 +10,17 @@ using BookShare.Models;
 using Microsoft.AspNetCore.Authorization;
 using BookShare.Models.ViewModels;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace BookShare.Controllers {
     public class BooksController : Controller {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public BooksController(AppDbContext context) {
+        public BooksController(AppDbContext context, IWebHostEnvironment webHostEnvironment) {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Books
@@ -54,8 +58,35 @@ namespace BookShare.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Create([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt")] Book book) {
+        public async Task<IActionResult> Create([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt")] Book book, IFormFile pdfFile) {
             if (ModelState.IsValid) {
+                if (pdfFile != null && pdfFile.Length > 0) {
+                    // Sprawdź czy plik jest PDF
+                    if (pdfFile.ContentType != "application/pdf") {
+                        ModelState.AddModelError("pdfFile", "Można przesyłać tylko pliki PDF.");
+                        ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", book.CategoryId);
+                        return View(book);
+                    }
+
+                    // Utwórz nazwę pliku z unikalnym identyfikatorem
+                    var fileName = $"{Guid.NewGuid()}_{pdfFile.FileName}";
+                    var uploadsPath = Path.Combine("/app/uploads", "books");
+                    
+                    // Utwórz katalog jeśli nie istnieje
+                    if (!Directory.Exists(uploadsPath)) {
+                        Directory.CreateDirectory(uploadsPath);
+                    }
+
+                    var filePath = Path.Combine(uploadsPath, fileName);
+
+                    // Zapisz plik
+                    using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                        await pdfFile.CopyToAsync(fileStream);
+                    }
+
+                    book.PdfFilePath = Path.Combine("books", fileName);
+                }
+
                 _context.Add(book);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -85,13 +116,49 @@ namespace BookShare.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")] // dokładnie ta nazwa
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt")] Book NewBook) {
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt,PdfFilePath")] Book NewBook, IFormFile pdfFile) {
             if (id != NewBook.Id) {
                 return NotFound();
             }
 
             if (ModelState.IsValid) {
                 try {
+                    // Jeśli nowy plik został przesłany
+                    if (pdfFile != null && pdfFile.Length > 0) {
+                        // Sprawdź czy plik jest PDF
+                        if (pdfFile.ContentType != "application/pdf") {
+                            ModelState.AddModelError("pdfFile", "Można przesyłać tylko pliki PDF.");
+                            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", NewBook.CategoryId);
+                            return View(NewBook);
+                        }
+
+                        // Usuń stary plik jeśli istnieje
+                        if (!string.IsNullOrEmpty(NewBook.PdfFilePath)) {
+                            var oldFilePath = Path.Combine("/app/uploads", NewBook.PdfFilePath);
+                            if (System.IO.File.Exists(oldFilePath)) {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                        }
+
+                        // Utwórz nazwę pliku z unikalnym identyfikatorem
+                        var fileName = $"{Guid.NewGuid()}_{pdfFile.FileName}";
+                        var uploadsPath = Path.Combine("/app/uploads", "books");
+                        
+                        // Utwórz katalog jeśli nie istnieje
+                        if (!Directory.Exists(uploadsPath)) {
+                            Directory.CreateDirectory(uploadsPath);
+                        }
+
+                        var filePath = Path.Combine(uploadsPath, fileName);
+
+                        // Zapisz plik
+                        using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                            await pdfFile.CopyToAsync(fileStream);
+                        }
+
+                        NewBook.PdfFilePath = Path.Combine("books", fileName);
+                    }
+
                     _context.Update(NewBook);
                     await _context.SaveChangesAsync();
                 }
@@ -156,12 +223,44 @@ namespace BookShare.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Manage([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId")] Book book) {
+        public async Task<IActionResult> Manage([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId")] Book book, IFormFile pdfFile) {
             Console.WriteLine("Dodawanie książki: " + book.Title);
             book.CreatedAt = DateTime.UtcNow; // Set creation date automatically
 
             if (ModelState.IsValid) {
                 Console.WriteLine("Model jest poprawny.");
+                
+                if (pdfFile != null && pdfFile.Length > 0) {
+                    // Sprawdź czy plik jest PDF
+                    if (pdfFile.ContentType != "application/pdf") {
+                        ModelState.AddModelError("pdfFile", "Można przesyłać tylko pliki PDF.");
+                        ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", book.CategoryId);
+                        var errorModel = new BookManagementViewModel {
+                            Books = await _context.Books.Include(b => b.Category).ToListAsync(),
+                            NewBook = book
+                        };
+                        return View(errorModel);
+                    }
+
+                    // Utwórz nazwę pliku z unikalnym identyfikatorem
+                    var fileName = $"{Guid.NewGuid()}_{pdfFile.FileName}";
+                    var uploadsPath = Path.Combine("/app/uploads", "books");
+                    
+                    // Utwórz katalog jeśli nie istnieje
+                    if (!Directory.Exists(uploadsPath)) {
+                        Directory.CreateDirectory(uploadsPath);
+                    }
+
+                    var filePath = Path.Combine(uploadsPath, fileName);
+
+                    // Zapisz plik
+                    using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                        await pdfFile.CopyToAsync(fileStream);
+                    }
+
+                    book.PdfFilePath = Path.Combine("books", fileName);
+                }
+
                 _context.Add(book);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Manage));
@@ -271,6 +370,37 @@ namespace BookShare.Controllers {
                 TempData["Error"] = "Wystąpił błąd podczas zakupu. Spróbuj ponownie.";
                 return RedirectToAction(nameof(Details), new { id });
             }
+        }
+
+        // GET: Books/DownloadPdf/5
+        [Authorize]
+        public async Task<IActionResult> DownloadPdf(int id) {
+            var book = await _context.Books.FindAsync(id);
+            if (book == null || string.IsNullOrEmpty(book.PdfFilePath)) {
+                return NotFound("Książka lub plik PDF nie zostały znalezione.");
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            // Sprawdź czy użytkownik ma tę książkę (administratorzy mają dostęp do wszystkich)
+            if (!User.IsInRole("Administrator")) {
+                var hasBook = await _context.UserBooks
+                    .AnyAsync(ub => ub.UserId == userId && ub.BookId == id);
+                
+                if (!hasBook) {
+                    return Forbid("Nie masz dostępu do tej książki. Musisz ją najpierw kupić.");
+                }
+            }
+
+            var filePath = Path.Combine("/app/uploads", book.PdfFilePath);
+            if (!System.IO.File.Exists(filePath)) {
+                return NotFound("Plik PDF nie istnieje.");
+            }
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            var fileName = $"{book.Title}_{book.Author}.pdf";
+
+            return File(fileBytes, "application/pdf", fileName);
         }
 
 

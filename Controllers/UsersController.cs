@@ -4,6 +4,7 @@ using BookShare.Data;
 using BookShare.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.IO;
 
 namespace BookShare.Controllers {
     public class UsersController : Controller {
@@ -162,6 +163,59 @@ namespace BookShare.Controllers {
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Users/Profile - Profil obecnie zalogowanego użytkownika
+        [Authorize]
+        public async Task<IActionResult> Profile() {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) {
+                return NotFound();
+            }
+
+            var user = await _context.Users
+                .Include(u => u.UserBooks)
+                .ThenInclude(ub => ub.Book)
+                .ThenInclude(b => b.Category)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) {
+                return NotFound();
+            }
+
+            return View(user);
+        }
+
+        // GET: Users/DownloadBook/5 - Pobierz książkę z profilu użytkownika
+        [Authorize]
+        public async Task<IActionResult> DownloadBook(int bookId) {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            // Sprawdź czy użytkownik ma tę książkę
+            var userBook = await _context.UserBooks
+                .Include(ub => ub.Book)
+                .FirstOrDefaultAsync(ub => ub.UserId == userId && ub.BookId == bookId);
+
+            if (userBook == null) {
+                TempData["Error"] = "Nie masz dostępu do tej książki.";
+                return RedirectToAction(nameof(Profile));
+            }
+
+            if (string.IsNullOrEmpty(userBook.Book.PdfFilePath)) {
+                TempData["Error"] = "Ta książka nie ma dostępnego pliku PDF.";
+                return RedirectToAction(nameof(Profile));
+            }
+
+            var filePath = Path.Combine("/app/uploads", userBook.Book.PdfFilePath);
+            if (!System.IO.File.Exists(filePath)) {
+                TempData["Error"] = "Plik PDF nie istnieje.";
+                return RedirectToAction(nameof(Profile));
+            }
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            var fileName = $"{userBook.Book.Title}_{userBook.Book.Author}.pdf";
+
+            return File(fileBytes, "application/pdf", fileName);
         }
 
         private bool UserExists(string id) {

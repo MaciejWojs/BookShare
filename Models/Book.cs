@@ -32,6 +32,9 @@ namespace BookShare.Models {
 
         public int? CategoryId { get; set; }
 
+        [StringLength(500, ErrorMessage = "Ścieżka pliku nie może być dłuższa niż 500 znaków.")]
+        public string? PdfFilePath { get; set; }
+
         [DataType(DataType.DateTime)]
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 

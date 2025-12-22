@@ -36,7 +36,13 @@ services:
       - bookshare
     depends_on:
       - db
+    volumes:
+      - uploads:/app/uploads
 
 networks:
   bookshare:
     driver: bridge
+
+volumes:
+  uploads:
+    driver: local
