@@ -30,7 +30,7 @@ COPY --from=publish /app/publish .
 
 # Utwórz katalog dla przesyłanych plików i ustaw odpowiednie uprawnienia
 USER root
-RUN mkdir -p /app/uploads/books && chown -R $APP_UID:$APP_UID /app/uploads
+RUN mkdir -p /app/uploads/books && mkdir -p /app/uploads/covers && chown -R $APP_UID:$APP_UID /app/uploads
 USER $APP_UID
 
 ENTRYPOINT ["dotnet", "BookShare.dll"]

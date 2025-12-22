@@ -63,6 +63,14 @@
                         {
                             <div class="col-md-6 mb-3">
                                 <div class="card h-100">
+                                    @if (!string.IsNullOrEmpty(userBook.Book.CoverImagePath))
+                                    {
+                                        <img src="@Url.Action("GetCoverImage", "Books", new { id = userBook.Book.Id })" class="card-img-top" alt="Okładka książki" style="height: 200px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg" class="card-img-top" alt="Brak okładki" style="height: 200px; object-fit: cover;" />
+                                    }
                                     <div class="card-body">
                                         <h6 class="card-title">@userBook.Book.Title</h6>
                                         <p class="card-text">

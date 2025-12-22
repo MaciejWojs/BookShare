@@ -55,6 +55,15 @@
                     <span class="text-danger">@ViewData.ModelState["pdfFile"].Errors.FirstOrDefault()?.ErrorMessage</span>
                 }
             </div>
+            <div class="form-group">
+                <label for="coverImage" class="control-label">Okładka książki</label>
+                <input type="file" name="coverImage" id="coverImage" class="form-control" accept="image/*" />
+                <small class="form-text text-muted">Wybierz obraz okładki (JPG, PNG, GIF, WebP) - opcjonalne</small>
+                @if (ViewData.ModelState["coverImage"]?.Errors.Count > 0)
+                {
+                    <span class="text-danger">@ViewData.ModelState["coverImage"].Errors.FirstOrDefault()?.ErrorMessage</span>
+                }
+            </div>
             @* <div class="form-group"> *@
                 @* <label asp-for="CreatedAt" class="control-label"></label> *@
                 @* <input asp-for="CreatedAt" class="form-control" /> *@

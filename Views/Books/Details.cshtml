@@ -20,10 +20,21 @@
     </div>
 }
 
-<div>
-    <h4>Book</h4>
-    <hr />
-    <dl class="row">
+<div class="row">
+    <div class="col-md-3">
+        @if (!string.IsNullOrEmpty(Model.CoverImagePath))
+        {
+            <img src="@Url.Action("GetCoverImage", new { id = Model.Id })" alt="Okładka książki" class="img-fluid rounded shadow-sm mb-3" />
+        }
+        else
+        {
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg" alt="Brak okładki" class="img-fluid rounded shadow-sm mb-3" />
+        }
+    </div>
+    <div class="col-md-9">
+        <h4>@Model.Title</h4>
+        <hr />
+        <dl class="row">
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Title)
         </dt>
@@ -99,6 +110,7 @@
             }
         </dd>
     </dl>
+    </div>
 </div>
 <div class="mb-3">
     @if (User.Identity.IsAuthenticated && Model.StockQuantity > 0)

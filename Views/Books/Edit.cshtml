@@ -15,6 +15,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="PdfFilePath" />
+            <input type="hidden" asp-for="CoverImagePath" />
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
                 <input asp-for="Title" class="form-control" />
@@ -61,6 +62,20 @@
                 @if (ViewData.ModelState["pdfFile"]?.Errors.Count > 0)
                 {
                     <span class="text-danger">@ViewData.ModelState["pdfFile"].Errors.FirstOrDefault()?.ErrorMessage</span>
+                }
+            </div>
+            <div class="form-group">
+                <label for="coverImage" class="control-label">Okładka książki</label>
+                @if (!string.IsNullOrEmpty(Model.CoverImagePath))
+                {
+                    <p class="text-info">Obecna okładka: @(System.IO.Path.GetFileName(Model.CoverImagePath))</p>
+                    <img src="@Url.Action("GetCoverImage", new { id = Model.Id })" alt="Obecna okładka" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+                }
+                <input type="file" name="coverImage" id="coverImage" class="form-control" accept="image/*" />
+                <small class="form-text text-muted">Wybierz nowy obraz okładki aby zastąpić obecny (opcjonalne)</small>
+                @if (ViewData.ModelState["coverImage"]?.Errors.Count > 0)
+                {
+                    <span class="text-danger">@ViewData.ModelState["coverImage"].Errors.FirstOrDefault()?.ErrorMessage</span>
                 }
             </div>
             @* <div class="form-group">

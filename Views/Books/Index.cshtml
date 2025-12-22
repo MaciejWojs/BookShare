@@ -27,6 +27,9 @@
     <thead>
         <tr>
             <th>
+                Okładka
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Title)
             </th>
             <th>
@@ -56,6 +59,16 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
+            <td>
+                @if (!string.IsNullOrEmpty(item.CoverImagePath))
+                {
+                    <img src="@Url.Action("GetCoverImage", new { id = item.Id })" alt="Okładka" class="img-thumbnail" style="width: 50px; height: 70px; object-fit: cover;" />
+                }
+                else
+                {
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg" alt="Brak okładki" class="img-thumbnail" style="width: 50px; height: 70px; object-fit: cover;" />
+                }
+            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Title)
             </td>

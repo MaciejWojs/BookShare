@@ -58,8 +58,9 @@ namespace BookShare.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Create([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt")] Book book, IFormFile pdfFile) {
+        public async Task<IActionResult> Create([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt")] Book book, IFormFile pdfFile, IFormFile coverImage) {
             if (ModelState.IsValid) {
+                // Obsługa pliku PDF
                 if (pdfFile != null && pdfFile.Length > 0) {
                     // Sprawdź czy plik jest PDF
                     if (pdfFile.ContentType != "application/pdf") {
@@ -69,22 +70,51 @@ namespace BookShare.Controllers {
                     }
 
                     // Utwórz nazwę pliku z unikalnym identyfikatorem
-                    var fileName = $"{Guid.NewGuid()}_{pdfFile.FileName}";
-                    var uploadsPath = Path.Combine("/app/uploads", "books");
+                    var pdfFileName = $"{Guid.NewGuid()}_{pdfFile.FileName}";
+                    var pdfUploadsPath = Path.Combine("/app/uploads", "books");
                     
                     // Utwórz katalog jeśli nie istnieje
-                    if (!Directory.Exists(uploadsPath)) {
-                        Directory.CreateDirectory(uploadsPath);
+                    if (!Directory.Exists(pdfUploadsPath)) {
+                        Directory.CreateDirectory(pdfUploadsPath);
                     }
 
-                    var filePath = Path.Combine(uploadsPath, fileName);
+                    var pdfFilePath = Path.Combine(pdfUploadsPath, pdfFileName);
 
                     // Zapisz plik
-                    using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                    using (var fileStream = new FileStream(pdfFilePath, FileMode.Create)) {
                         await pdfFile.CopyToAsync(fileStream);
                     }
 
-                    book.PdfFilePath = Path.Combine("books", fileName);
+                    book.PdfFilePath = Path.Combine("books", pdfFileName);
+                }
+
+                // Obsługa obrazu okładki
+                if (coverImage != null && coverImage.Length > 0) {
+                    // Sprawdź czy plik jest obrazem
+                    var allowedImageTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
+                    if (!allowedImageTypes.Contains(coverImage.ContentType.ToLower())) {
+                        ModelState.AddModelError("coverImage", "Można przesyłać tylko pliki obrazów (JPG, PNG, GIF, WebP).");
+                        ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", book.CategoryId);
+                        return View(book);
+                    }
+
+                    // Utwórz nazwę pliku z unikalnym identyfikatorem
+                    var imageFileName = $"{Guid.NewGuid()}_{coverImage.FileName}";
+                    var imageUploadsPath = Path.Combine("/app/uploads", "covers");
+                    
+                    // Utwórz katalog jeśli nie istnieje
+                    if (!Directory.Exists(imageUploadsPath)) {
+                        Directory.CreateDirectory(imageUploadsPath);
+                    }
+
+                    var imageFilePath = Path.Combine(imageUploadsPath, imageFileName);
+
+                    // Zapisz plik
+                    using (var fileStream = new FileStream(imageFilePath, FileMode.Create)) {
+                        await coverImage.CopyToAsync(fileStream);
+                    }
+
+                    book.CoverImagePath = Path.Combine("covers", imageFileName);
                 }
 
                 _context.Add(book);
@@ -116,14 +146,14 @@ namespace BookShare.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")] // dokładnie ta nazwa
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt,PdfFilePath")] Book NewBook, IFormFile pdfFile) {
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId,CreatedAt,PdfFilePath,CoverImagePath")] Book NewBook, IFormFile pdfFile, IFormFile coverImage) {
             if (id != NewBook.Id) {
                 return NotFound();
             }
 
             if (ModelState.IsValid) {
                 try {
-                    // Jeśli nowy plik został przesłany
+                    // Jeśli nowy plik PDF został przesłany
                     if (pdfFile != null && pdfFile.Length > 0) {
                         // Sprawdź czy plik jest PDF
                         if (pdfFile.ContentType != "application/pdf") {
@@ -134,29 +164,66 @@ namespace BookShare.Controllers {
 
                         // Usuń stary plik jeśli istnieje
                         if (!string.IsNullOrEmpty(NewBook.PdfFilePath)) {
-                            var oldFilePath = Path.Combine("/app/uploads", NewBook.PdfFilePath);
-                            if (System.IO.File.Exists(oldFilePath)) {
-                                System.IO.File.Delete(oldFilePath);
+                            var oldPdfPath = Path.Combine("/app/uploads", NewBook.PdfFilePath);
+                            if (System.IO.File.Exists(oldPdfPath)) {
+                                System.IO.File.Delete(oldPdfPath);
                             }
                         }
 
                         // Utwórz nazwę pliku z unikalnym identyfikatorem
-                        var fileName = $"{Guid.NewGuid()}_{pdfFile.FileName}";
-                        var uploadsPath = Path.Combine("/app/uploads", "books");
+                        var pdfFileName = $"{Guid.NewGuid()}_{pdfFile.FileName}";
+                        var pdfUploadsPath = Path.Combine("/app/uploads", "books");
                         
                         // Utwórz katalog jeśli nie istnieje
-                        if (!Directory.Exists(uploadsPath)) {
-                            Directory.CreateDirectory(uploadsPath);
+                        if (!Directory.Exists(pdfUploadsPath)) {
+                            Directory.CreateDirectory(pdfUploadsPath);
                         }
 
-                        var filePath = Path.Combine(uploadsPath, fileName);
+                        var pdfFilePath = Path.Combine(pdfUploadsPath, pdfFileName);
 
                         // Zapisz plik
-                        using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                        using (var fileStream = new FileStream(pdfFilePath, FileMode.Create)) {
                             await pdfFile.CopyToAsync(fileStream);
                         }
 
-                        NewBook.PdfFilePath = Path.Combine("books", fileName);
+                        NewBook.PdfFilePath = Path.Combine("books", pdfFileName);
+                    }
+
+                    // Jeśli nowy obraz okładki został przesłany
+                    if (coverImage != null && coverImage.Length > 0) {
+                        // Sprawdź czy plik jest obrazem
+                        var allowedImageTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
+                        if (!allowedImageTypes.Contains(coverImage.ContentType.ToLower())) {
+                            ModelState.AddModelError("coverImage", "Można przesyłać tylko pliki obrazów (JPG, PNG, GIF, WebP).");
+                            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", NewBook.CategoryId);
+                            return View(NewBook);
+                        }
+
+                        // Usuń stary obraz jeśli istnieje
+                        if (!string.IsNullOrEmpty(NewBook.CoverImagePath)) {
+                            var oldImagePath = Path.Combine("/app/uploads", NewBook.CoverImagePath);
+                            if (System.IO.File.Exists(oldImagePath)) {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                        }
+
+                        // Utwórz nazwę pliku z unikalnym identyfikatorem
+                        var imageFileName = $"{Guid.NewGuid()}_{coverImage.FileName}";
+                        var imageUploadsPath = Path.Combine("/app/uploads", "covers");
+                        
+                        // Utwórz katalog jeśli nie istnieje
+                        if (!Directory.Exists(imageUploadsPath)) {
+                            Directory.CreateDirectory(imageUploadsPath);
+                        }
+
+                        var imageFilePath = Path.Combine(imageUploadsPath, imageFileName);
+
+                        // Zapisz plik
+                        using (var fileStream = new FileStream(imageFilePath, FileMode.Create)) {
+                            await coverImage.CopyToAsync(fileStream);
+                        }
+
+                        NewBook.CoverImagePath = Path.Combine("covers", imageFileName);
                     }
 
                     _context.Update(NewBook);
@@ -223,13 +290,14 @@ namespace BookShare.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Manage([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId")] Book book, IFormFile pdfFile) {
+        public async Task<IActionResult> Manage([Bind("Id,Title,Author,ISBN,Description,Price,StockQuantity,CategoryId")] Book book, IFormFile pdfFile, IFormFile coverImage) {
             Console.WriteLine("Dodawanie książki: " + book.Title);
             book.CreatedAt = DateTime.UtcNow; // Set creation date automatically
 
             if (ModelState.IsValid) {
                 Console.WriteLine("Model jest poprawny.");
                 
+                // Obsługa pliku PDF
                 if (pdfFile != null && pdfFile.Length > 0) {
                     // Sprawdź czy plik jest PDF
                     if (pdfFile.ContentType != "application/pdf") {
@@ -243,22 +311,55 @@ namespace BookShare.Controllers {
                     }
 
                     // Utwórz nazwę pliku z unikalnym identyfikatorem
-                    var fileName = $"{Guid.NewGuid()}_{pdfFile.FileName}";
-                    var uploadsPath = Path.Combine("/app/uploads", "books");
+                    var pdfFileName = $"{Guid.NewGuid()}_{pdfFile.FileName}";
+                    var pdfUploadsPath = Path.Combine("/app/uploads", "books");
                     
                     // Utwórz katalog jeśli nie istnieje
-                    if (!Directory.Exists(uploadsPath)) {
-                        Directory.CreateDirectory(uploadsPath);
+                    if (!Directory.Exists(pdfUploadsPath)) {
+                        Directory.CreateDirectory(pdfUploadsPath);
                     }
 
-                    var filePath = Path.Combine(uploadsPath, fileName);
+                    var pdfFilePath = Path.Combine(pdfUploadsPath, pdfFileName);
 
                     // Zapisz plik
-                    using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                    using (var fileStream = new FileStream(pdfFilePath, FileMode.Create)) {
                         await pdfFile.CopyToAsync(fileStream);
                     }
 
-                    book.PdfFilePath = Path.Combine("books", fileName);
+                    book.PdfFilePath = Path.Combine("books", pdfFileName);
+                }
+
+                // Obsługa obrazu okładki
+                if (coverImage != null && coverImage.Length > 0) {
+                    // Sprawdź czy plik jest obrazem
+                    var allowedImageTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
+                    if (!allowedImageTypes.Contains(coverImage.ContentType.ToLower())) {
+                        ModelState.AddModelError("coverImage", "Można przesyłać tylko pliki obrazów (JPG, PNG, GIF, WebP).");
+                        ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", book.CategoryId);
+                        var errorModel = new BookManagementViewModel {
+                            Books = await _context.Books.Include(b => b.Category).ToListAsync(),
+                            NewBook = book
+                        };
+                        return View(errorModel);
+                    }
+
+                    // Utwórz nazwę pliku z unikalnym identyfikatorem
+                    var imageFileName = $"{Guid.NewGuid()}_{coverImage.FileName}";
+                    var imageUploadsPath = Path.Combine("/app/uploads", "covers");
+                    
+                    // Utwórz katalog jeśli nie istnieje
+                    if (!Directory.Exists(imageUploadsPath)) {
+                        Directory.CreateDirectory(imageUploadsPath);
+                    }
+
+                    var imageFilePath = Path.Combine(imageUploadsPath, imageFileName);
+
+                    // Zapisz plik
+                    using (var fileStream = new FileStream(imageFilePath, FileMode.Create)) {
+                        await coverImage.CopyToAsync(fileStream);
+                    }
+
+                    book.CoverImagePath = Path.Combine("covers", imageFileName);
                 }
 
                 _context.Add(book);
@@ -401,6 +502,37 @@ namespace BookShare.Controllers {
             var fileName = $"{book.Title}_{book.Author}.pdf";
 
             return File(fileBytes, "application/pdf", fileName);
+        }
+
+        // GET: Books/GetCoverImage/5
+        public async Task<IActionResult> GetCoverImage(int id) {
+            var book = await _context.Books.FindAsync(id);
+            if (book == null || string.IsNullOrEmpty(book.CoverImagePath)) {
+                // Zwróć placeholder image
+                return Redirect("https://commons.wikimedia.org/wiki/File:No-Image-Placeholder.svg");
+            }
+
+            var filePath = Path.Combine("/app/uploads", book.CoverImagePath);
+            if (!System.IO.File.Exists(filePath)) {
+                // Zwróć placeholder image
+                return Redirect("https://commons.wikimedia.org/wiki/File:No-Image-Placeholder.svg");
+            }
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            var contentType = GetContentType(filePath);
+
+            return File(fileBytes, contentType);
+        }
+
+        private string GetContentType(string path) {
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            return ext switch {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png", 
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream"
+            };
         }
 
 
